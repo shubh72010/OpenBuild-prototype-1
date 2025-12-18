@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPENBUILD | Foundation Series</title>
+    <style>
+        :root {
+            --bg: #0f0f13;
+            --panel: #1a1a21;
+            --text: #e0e0e0;
+            --accent: #ff471a; /* Safety Orange */
+            --success: #00ff9d;
+            --border: #333;
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        h1, h2, h3 { text-transform: uppercase; letter-spacing: 2px; }
+        .header { grid-column: 1 / -1; border-bottom: 2px solid var(--accent); padding-bottom: 20px; margin-bottom: 20px; }
+        .tagline { color: #888; font-size: 0.9em; }
+        
+        /* Dashboard Styles */
+        .controls { background: var(--panel); padding: 20px; border: 1px solid var(--border); }
+        .monitor { background: var(--panel); padding: 20px; border: 1px solid var(--accent); position: relative; }
+        
+        .option-group { margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .radio-label { display: flex; justify-content: space-between; cursor: pointer; padding: 10px; border: 1px solid transparent; }
+        .radio-label:hover { background: #252530; }
+        input[type="radio"] { margin-right: 10px; }
+        
+        /* BOM Styles */
+        .bom-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9em; }
+        .total-row { border-top: 1px solid var(--text); margin-top: 15px; padding-top: 10px; font-weight: bold; font-size: 1.2em; color: var(--accent); }
+        
+        .bar-container { background: #333; height: 10px; width: 100%; margin-top: 5px; }
+        .bar-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.3s; }
+        .warning { color: var(--accent); font-weight: bold; display: none; margin-top: 10px; border: 1px solid var(--accent); padding: 10px;}
+
+        .btn-commit {
+            background: var(--accent); color: #000; border: none; padding: 15px 30px; 
+            font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px;
+            text-transform: uppercase; font-family: inherit;
+        }
+        .btn-commit:hover { background: #ff704d; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>OpenBuild <span style="font-size:0.5em; vertical-align:middle;">[ALPHA]</span></h1>
+        <div class="tagline">Foundation Series: The Speaker. Built by Community. Vetoed by Physics.</div>
+    </div>
+
+    <div class="controls">
+        <h3>Engineering Decisions</h3>
+        <p style="font-size: 0.8em; color: #888;">Select components. Watch the BOM and Constraints react.</p>
+
+        <div class="option-group">
+            <h4>1. Driver Configuration</h4>
+            <label class="radio-label">
+                <input type="radio" name="driver" value="single" checked onchange="updateSystem()">
+                <span>Single 2.5" High-Excursion</span>
+                <span>₹1200</span>
+            </label>
+            <label class="radio-label">
+                <input type="radio" name="driver" value="dual" onchange="updateSystem()">
+                <span>Dual 2.0" Stereo Array</span>
+                <span>₹1900</span>
+            </label>
+        </div>
+
+        <div class="option-group">
+            <h4>2. Enclosure Material</h4>
+            <label class="radio-label">
+                <input type="radio" name="material" value="plastic" checked onchange="updateSystem()">
+                <span>Polycarbonate (Light)</span>
+                <span>₹800</span>
+            </label>
+            <label class="radio-label">
+                <input type="radio" name="material" value="aluminum" onchange="updateSystem()">
+                <span>Anodized Aluminum (Heavy/Premium)</span>
+                <span>₹2200</span>
+            </label>
+        </div>
+
+        <div class="option-group">
+            <h4>3. Power Source</h4>
+            <label class="radio-label">
+                <input type="radio" name="battery" value="3000" checked onchange="updateSystem()">
+                <span>3000mAh (Standard)</span>
+                <span>₹600</span>
+            </label>
+            <label class="radio-label">
+                <input type="radio" name="battery" value="5000" onchange="updateSystem()">
+                <span>5000mAh (Endurance)</span>
+                <span>₹1100</span>
+            </label>
+        </div>
+    </div>
+
+    <div class="monitor">
+        <h3>Live BOM & Physics</h3>
+        
+        <div style="margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between;">
+                <span>BUDGET CAP (₹7,500)</span>
+                <span id="budget-percent">0%</span>
+            </div>
+            <div class="bar-container"><div id="budget-bar" class="bar-fill"></div></div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between;">
+                <span>PORTABILITY LIMIT (1.2kg)</span>
+                <span id="weight-val">0kg</span>
+            </div>
+            <div class="bar-container"><div id="weight-bar" class="bar-fill"></div></div>
+        </div>
+
+        <hr style="border-color: #333">
+
+        <div class="bom-item"><span>Component Cost:</span> <span id="cost-comp">₹0</span></div>
+        <div class="bom-item"><span>Assembly & QC:</span> <span>₹1200</span></div>
+        <div class="bom-item"><span>Logistics/Duty:</span> <span>₹800</span></div>
+        <div class="bom-item"><span>R&D Margin (Fixed):</span> <span>₹500</span></div>
+        
+        <div class="total-row">
+            <span>FINAL PRICE:</span>
+            <span id="total-price">₹0</span>
+        </div>
+
+        <div id="veto-msg" class="warning">
+            ⚠️ ENGINEER VETO: Configuration too heavy or over budget. Please adjust.
+        </div>
+
+        <button class="btn-commit" onclick="alert('Welcome to Tier 1. Voting rights acquired.')">Join as Builder (₹50)</button>
+    </div>
+</div>
+
+<script>
+    // Configuration Data
+    const specs = {
+        driver: { single: { cost: 1200, weight: 0.3 }, dual: { cost: 1900, weight: 0.5 } },
+        material: { plastic: { cost: 800, weight: 0.2 }, aluminum: { cost: 2200, weight: 0.6 } },
+        battery: { 3000: { cost: 600, weight: 0.1 }, 5000: { cost: 1100, weight: 0.2 } }
+    };
+
+    const fixedCosts = 1200 + 800 + 500; // Assembly + Logistics + Margin
+    const maxBudget = 7500;
+    const maxWeight = 1.2;
+
+    function updateSystem() {
+        // Get selected values
+        const d = document.querySelector('input[name="driver"]:checked').value;
+        const m = document.querySelector('input[name="material"]:checked').value;
+        const b = document.querySelector('input[name="battery"]:checked').value;
+
+        // Calculate Totals
+        const compCost = specs.driver[d].cost + specs.material[m].cost + specs.battery[b].cost;
+        const totalCost = compCost + fixedCosts;
+        const totalWeight = specs.driver[d].weight + specs.material[m].weight + specs.battery[b].weight + 0.2; // +0.2 for PCB/Cables
+
+        // Update DOM - Cost
+        document.getElementById('cost-comp').innerText = '₹' + compCost;
+        document.getElementById('total-price').innerText = '₹' + totalCost;
+        
+        // Update DOM - Budget Bar
+        const budgetPct = (totalCost / maxBudget) * 100;
+        document.getElementById('budget-bar').style.width = Math.min(budgetPct, 100) + '%';
+        document.getElementById('budget-percent').innerText = Math.round(budgetPct) + '%';
+        
+        // Update DOM - Weight
+        document.getElementById('weight-val').innerText = totalWeight.toFixed(1) + 'kg';
+        const weightPct = (totalWeight / maxWeight) * 100;
+        document.getElementById('weight-bar').style.width = Math.min(weightPct, 100) + '%';
+
+        // Logic Check / Veto
+        const bar = document.getElementById('budget-bar');
+        const veto = document.getElementById('veto-msg');
+        
+        if (totalCost > maxBudget || totalWeight > maxWeight) {
+            bar.style.backgroundColor = '#ff471a'; // Red
+            veto.style.display = 'block';
+        } else {
+            bar.style.backgroundColor = '#00ff9d'; // Green
+            veto.style.display = 'none';
+        }
+    }
+
+    // Initialize
+    updateSystem();
+</script>
+
+</body>
+</html>
+
