@@ -3,209 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPENBUILD | Foundation Series</title>
+    <title>OpenBuild | Foundation Protocol</title>
     <style>
         :root {
-            --bg: #0f0f13;
-            --panel: #1a1a21;
-            --text: #e0e0e0;
-            --accent: #ff471a; /* Safety Orange */
-            --success: #00ff9d;
+            --bg: #050505;
+            --panel: #111;
+            --text: #cfcfcf;
+            --accent: #00ff41; /* Terminal Green */
+            --alert: #ff3333;
             --border: #333;
+            --font: 'Courier New', monospace;
         }
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-        .container {
-            max-width: 1000px;
-            width: 100%;
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-        }
-        h1, h2, h3 { text-transform: uppercase; letter-spacing: 2px; }
-        .header { grid-column: 1 / -1; border-bottom: 2px solid var(--accent); padding-bottom: 20px; margin-bottom: 20px; }
-        .tagline { color: #888; font-size: 0.9em; }
+        body { background: var(--bg); color: var(--text); font-family: var(--font); padding: 20px; max-width: 1200px; margin: 0 auto; }
         
-        /* Dashboard Styles */
-        .controls { background: var(--panel); padding: 20px; border: 1px solid var(--border); }
-        .monitor { background: var(--panel); padding: 20px; border: 1px solid var(--accent); position: relative; }
-        
-        .option-group { margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
-        .radio-label { display: flex; justify-content: space-between; cursor: pointer; padding: 10px; border: 1px solid transparent; }
-        .radio-label:hover { background: #252530; }
-        input[type="radio"] { margin-right: 10px; }
-        
-        /* BOM Styles */
-        .bom-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9em; }
-        .total-row { border-top: 1px solid var(--text); margin-top: 15px; padding-top: 10px; font-weight: bold; font-size: 1.2em; color: var(--accent); }
-        
-        .bar-container { background: #333; height: 10px; width: 100%; margin-top: 5px; }
-        .bar-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.3s; }
-        .warning { color: var(--accent); font-weight: bold; display: none; margin-top: 10px; border: 1px solid var(--accent); padding: 10px;}
+        /* UTILITIES */
+        .flex { display: flex; justify-content: space-between; }
+        .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+        .box { border: 1px solid var(--border); padding: 20px; background: var(--panel); margin-bottom: 20px; }
+        h1, h2, h3 { text-transform: uppercase; margin-top: 0; letter-spacing: 1px; }
+        button { font-family: var(--font); cursor: pointer; }
 
-        .btn-commit {
-            background: var(--accent); color: #000; border: none; padding: 15px 30px; 
-            font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px;
-            text-transform: uppercase; font-family: inherit;
-        }
-        .btn-commit:hover { background: #ff704d; }
+        /* KILL SWITCH HEADER */
+        .kill-switch { border-bottom: 2px solid var(--alert); padding-bottom: 10px; margin-bottom: 40px; }
+        .progress-track { background: #333; height: 10px; width: 100%; margin: 10px 0; }
+        .progress-fill { background: var(--alert); height: 100%; width: 42%; }
+
+        /* DASHBOARD */
+        .component-row { display: flex; align-items: center; justify-content: space-between; padding: 15px; border-bottom: 1px solid var(--border); }
+        .component-row:hover { background: #1a1a1a; }
+        
+        .radio-group input { margin-right: 10px; }
+        .eng-note { font-size: 0.8em; color: #666; margin-top: 5px; display: block; font-style: italic; }
+
+        /* BOM SIDEBAR */
+        .bom-line { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9em; }
+        .bom-total { border-top: 1px dashed var(--text); margin-top: 15px; padding-top: 10px; font-weight: bold; font-size: 1.2em; color: var(--accent); }
+        
+        /* BUDGET BAR */
+        .budget-bar-container { height: 20px; background: #222; border: 1px solid #444; margin-bottom: 20px; position: relative; }
+        .budget-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+        .budget-label { position: absolute; top: 0; left: 5px; color: #000; font-weight: bold; font-size: 0.8rem; line-height: 20px;}
+
+        /* WARNINGS */
+        .warning-box { background: rgba(255, 51, 51, 0.1); border: 1px solid var(--alert); color: var(--alert); padding: 10px; display: none; margin-top: 10px; }
+
+        .commit-btn { width: 100%; padding: 15px; background: var(--accent); color: #000; border: none; font-weight: bold; font-size: 1.1em; margin-top: 20px; }
+        .commit-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <h1>OpenBuild <span style="font-size:0.5em; vertical-align:middle;">[ALPHA]</span></h1>
-        <div class="tagline">Foundation Series: The Speaker. Built by Community. Vetoed by Physics.</div>
-    </div>
-
-    <div class="controls">
-        <h3>Engineering Decisions</h3>
-        <p style="font-size: 0.8em; color: #888;">Select components. Watch the BOM and Constraints react.</p>
-
-        <div class="option-group">
-            <h4>1. Driver Configuration</h4>
-            <label class="radio-label">
-                <input type="radio" name="driver" value="single" checked onchange="updateSystem()">
-                <span>Single 2.5" High-Excursion</span>
-                <span>₹1200</span>
-            </label>
-            <label class="radio-label">
-                <input type="radio" name="driver" value="dual" onchange="updateSystem()">
-                <span>Dual 2.0" Stereo Array</span>
-                <span>₹1900</span>
-            </label>
+    <div class="kill-switch">
+        <div class="flex">
+            <span><strong>PROJECT STATUS:</strong> ALPHA</span>
+            <span style="color: var(--alert)">KILL SWITCH ACTIVE</span>
         </div>
-
-        <div class="option-group">
-            <h4>2. Enclosure Material</h4>
-            <label class="radio-label">
-                <input type="radio" name="material" value="plastic" checked onchange="updateSystem()">
-                <span>Polycarbonate (Light)</span>
-                <span>₹800</span>
-            </label>
-            <label class="radio-label">
-                <input type="radio" name="material" value="aluminum" onchange="updateSystem()">
-                <span>Anodized Aluminum (Heavy/Premium)</span>
-                <span>₹2200</span>
-            </label>
-        </div>
-
-        <div class="option-group">
-            <h4>3. Power Source</h4>
-            <label class="radio-label">
-                <input type="radio" name="battery" value="3000" checked onchange="updateSystem()">
-                <span>3000mAh (Standard)</span>
-                <span>₹600</span>
-            </label>
-            <label class="radio-label">
-                <input type="radio" name="battery" value="5000" onchange="updateSystem()">
-                <span>5000mAh (Endurance)</span>
-                <span>₹1100</span>
-            </label>
+        <div class="progress-track"><div class="progress-fill"></div></div>
+        <div class="flex" style="font-size: 0.8em;">
+            <span>10,500 / 25,000 Builders</span>
+            <span>45 Days Remaining</span>
         </div>
     </div>
 
-    <div class="monitor">
-        <h3>Live BOM & Physics</h3>
+    <div class="grid">
         
-        <div style="margin-bottom: 20px;">
-            <div style="display:flex; justify-content:space-between;">
-                <span>BUDGET CAP (₹7,500)</span>
-                <span id="budget-percent">0%</span>
+        <div class="left-col">
+            <div class="box">
+                <h2>System Configuration</h2>
+                <p>Select components. Watch the BOM. Stay under budget.</p>
+                
+                <div class="component-group">
+                    <h3>1. Audio Drivers</h3>
+                    <div class="component-row">
+                        <label>
+                            <input type="radio" name="driver" value="std" checked onchange="updateCalc()"> 
+                            Single 2.5" Full Range
+                        </label>
+                        <span>₹1,200</span>
+                    </div>
+                    <div class="component-row">
+                        <label>
+                            <input type="radio" name="driver" value="pro" onchange="updateCalc()"> 
+                            Dual 2.0" Stereo Array
+                        </label>
+                        <span>₹2,100</span>
+                    </div>
+                     <span class="eng-note">> Engineer Note: Stereo array requires more complex crossover PCB.</span>
+                </div>
+
+                <br>
+
+                <div class="component-group">
+                    <h3>2. Enclosure Material</h3>
+                    <div class="component-row">
+                        <label>
+                            <input type="radio" name="mat" value="plastic" checked onchange="updateCalc()"> 
+                            Polycarbonate (ABS)
+                        </label>
+                        <span>₹600</span>
+                    </div>
+                    <div class="component-row">
+                        <label>
+                            <input type="radio" name="mat" value="alu" onchange="updateCalc()"> 
+                            Anodized Aluminum 6061
+                        </label>
+                        <span>₹2,400</span>
+                    </div>
+                    <span class="eng-note">> Engineer Note: Aluminum is premium but eats 30% of your budget.</span>
+                </div>
+
+                <br>
+
+                <div class="component-group">
+                    <h3>3. Power Cell</h3>
+                    <div class="component-row">
+                        <label>
+                            <input type="radio" name="bat" value="3000" checked onchange="updateCalc()"> 
+                            3000mAh (Standard)
+                        </label>
+                        <span>₹500</span>
+                    </div>
+                    <div class="component-row">
+                        <label>
+                            <input type="radio" name="bat" value="5000" onchange="updateCalc()"> 
+                            5000mAh (Extended)
+                        </label>
+                        <span>₹950</span>
+                    </div>
+                </div>
             </div>
-            <div class="bar-container"><div id="budget-bar" class="bar-fill"></div></div>
         </div>
 
-        <div style="margin-bottom: 20px;">
-            <div style="display:flex; justify-content:space-between;">
-                <span>PORTABILITY LIMIT (1.2kg)</span>
-                <span id="weight-val">0kg</span>
+        <div class="right-col">
+            <div class="box" style="position: sticky; top: 20px;">
+                <h3>Live Constraints</h3>
+                
+                <p style="font-size: 0.9em; margin-bottom: 5px;">BUDGET CAP: ₹7,500</p>
+                <div class="budget-bar-container">
+                    <div class="budget-label" id="pct-label">0%</div>
+                    <div class="budget-fill" id="budget-bar"></div>
+                </div>
+
+                <div class="warning-box" id="budget-warning">
+                    ⚠️ <strong>OVER BUDGET</strong><br>
+                    You have exceeded the target price. The community cannot vote on this configuration.
+                </div>
+
+                <hr style="border-color: #333; margin: 20px 0;">
+
+                <h3>The Bill (BOM)</h3>
+                <div class="bom-line"><span>Selected Components:</span> <span id="val-comp">₹0</span></div>
+                <div class="bom-line"><span>Assembly & Labor:</span> <span>₹1,500</span></div>
+                <div class="bom-line"><span>Logistics & Duty:</span> <span>₹1,200</span></div>
+                <div class="bom-line"><span>Company Margin (10%):</span> <span>₹750</span></div>
+                
+                <div class="bom-total flex">
+                    <span>TOTAL MSRP:</span>
+                    <span id="val-total">₹0</span>
+                </div>
+
+                <button class="commit-btn" id="btn-submit" onclick="alert('Welcome to the Founding Circle.')">
+                    BECOME A BUILDER (₹50)
+                </button>
+                <p style="font-size: 0.7em; text-align: center; margin-top: 10px; color: #666;">
+                    *Calculated via OpenBuild Cost Engine v1.0
+                </p>
             </div>
-            <div class="bar-container"><div id="weight-bar" class="bar-fill"></div></div>
         </div>
-
-        <hr style="border-color: #333">
-
-        <div class="bom-item"><span>Component Cost:</span> <span id="cost-comp">₹0</span></div>
-        <div class="bom-item"><span>Assembly & QC:</span> <span>₹1200</span></div>
-        <div class="bom-item"><span>Logistics/Duty:</span> <span>₹800</span></div>
-        <div class="bom-item"><span>R&D Margin (Fixed):</span> <span>₹500</span></div>
-        
-        <div class="total-row">
-            <span>FINAL PRICE:</span>
-            <span id="total-price">₹0</span>
-        </div>
-
-        <div id="veto-msg" class="warning">
-            ⚠️ ENGINEER VETO: Configuration too heavy or over budget. Please adjust.
-        </div>
-
-        <button class="btn-commit" onclick="alert('Welcome to Tier 1. Voting rights acquired.')">Join as Builder (₹50)</button>
     </div>
-</div>
 
-<script>
-    // Configuration Data
-    const specs = {
-        driver: { single: { cost: 1200, weight: 0.3 }, dual: { cost: 1900, weight: 0.5 } },
-        material: { plastic: { cost: 800, weight: 0.2 }, aluminum: { cost: 2200, weight: 0.6 } },
-        battery: { 3000: { cost: 600, weight: 0.1 }, 5000: { cost: 1100, weight: 0.2 } }
-    };
+    <script>
+        // CONFIG DATA
+        const prices = {
+            driver: { std: 1200, pro: 2100 },
+            mat: { plastic: 600, alu: 2400 },
+            bat: { 3000: 500, 5000: 950 }
+        };
+        const fixed = 1500 + 1200 + 750; // Assembly + Log + Margin
+        const limit = 7500;
 
-    const fixedCosts = 1200 + 800 + 500; // Assembly + Logistics + Margin
-    const maxBudget = 7500;
-    const maxWeight = 1.2;
+        function updateCalc() {
+            // 1. Get Values
+            const d = document.querySelector('input[name="driver"]:checked').value;
+            const m = document.querySelector('input[name="mat"]:checked').value;
+            const b = document.querySelector('input[name="bat"]:checked').value;
 
-    function updateSystem() {
-        // Get selected values
-        const d = document.querySelector('input[name="driver"]:checked').value;
-        const m = document.querySelector('input[name="material"]:checked').value;
-        const b = document.querySelector('input[name="battery"]:checked').value;
+            // 2. Math
+            const compCost = prices.driver[d] + prices.mat[m] + prices.bat[b];
+            const total = compCost + fixed;
+            const pct = (total / limit) * 100;
 
-        // Calculate Totals
-        const compCost = specs.driver[d].cost + specs.material[m].cost + specs.battery[b].cost;
-        const totalCost = compCost + fixedCosts;
-        const totalWeight = specs.driver[d].weight + specs.material[m].weight + specs.battery[b].weight + 0.2; // +0.2 for PCB/Cables
+            // 3. UI Update
+            document.getElementById('val-comp').innerText = "₹" + compCost.toLocaleString();
+            document.getElementById('val-total').innerText = "₹" + total.toLocaleString();
+            
+            const bar = document.getElementById('budget-bar');
+            const warn = document.getElementById('budget-warning');
+            const btn = document.getElementById('btn-submit');
+            const label = document.getElementById('pct-label');
 
-        // Update DOM - Cost
-        document.getElementById('cost-comp').innerText = '₹' + compCost;
-        document.getElementById('total-price').innerText = '₹' + totalCost;
-        
-        // Update DOM - Budget Bar
-        const budgetPct = (totalCost / maxBudget) * 100;
-        document.getElementById('budget-bar').style.width = Math.min(budgetPct, 100) + '%';
-        document.getElementById('budget-percent').innerText = Math.round(budgetPct) + '%';
-        
-        // Update DOM - Weight
-        document.getElementById('weight-val').innerText = totalWeight.toFixed(1) + 'kg';
-        const weightPct = (totalWeight / maxWeight) * 100;
-        document.getElementById('weight-bar').style.width = Math.min(weightPct, 100) + '%';
+            bar.style.width = Math.min(pct, 100) + "%";
+            label.innerText = Math.floor(pct) + "% USED";
 
-        // Logic Check / Veto
-        const bar = document.getElementById('budget-bar');
-        const veto = document.getElementById('veto-msg');
-        
-        if (totalCost > maxBudget || totalWeight > maxWeight) {
-            bar.style.backgroundColor = '#ff471a'; // Red
-            veto.style.display = 'block';
-        } else {
-            bar.style.backgroundColor = '#00ff9d'; // Green
-            veto.style.display = 'none';
+            // 4. Logic Constraints
+            if (total > limit) {
+                bar.style.background = "#ff3333";
+                warn.style.display = "block";
+                btn.disabled = true;
+                btn.innerText = "CONFIG INVALID";
+            } else {
+                bar.style.background = "#00ff41";
+                warn.style.display = "none";
+                btn.disabled = false;
+                btn.innerText = "BECOME A BUILDER (₹50)";
+            }
         }
-    }
 
-    // Initialize
-    updateSystem();
-</script>
-
+        // Init
+        updateCalc();
+    </script>
 </body>
 </html>
-
