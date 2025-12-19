@@ -3,369 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPENBUILD | OS for Hardware</title>
+    <title>OPENBUILD | Hardware Manifesto</title>
     <style>
         :root {
-            --bg: #0a0a0a;
-            --panel: #141414;
-            --border: #333;
-            --text-main: #e0e0e0;
-            --text-dim: #666;
+            --bg: #050505;
+            --text: #e0e0e0;
             --accent: #00ff41; /* Terminal Green */
             --alert: #ff4400; /* Safety Orange */
+            --panel: #111;
+            --border: #333;
             --font: 'Courier New', Courier, monospace;
         }
 
-        * { box-sizing: border-box; }
-
         body {
             background-color: var(--bg);
-            color: var(--text-main);
+            color: var(--text);
             font-family: var(--font);
             margin: 0;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
+            line-height: 1.6;
         }
 
-        /* SIDEBAR NAV */
-        nav {
-            width: 250px;
-            background: var(--panel);
-            border-right: 1px solid var(--border);
+        /* KILL SWITCH BAR */
+        .kill-switch {
+            background: #1a0505;
+            border-bottom: 2px solid var(--alert);
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
             display: flex;
-            flex-direction: column;
-            padding: 20px;
+            align-items: center;
             justify-content: space-between;
-        }
-
-        .brand {
-            font-size: 1.2rem;
-            font-weight: bold;
-            letter-spacing: 2px;
-            margin-bottom: 40px;
-            border-bottom: 2px solid var(--text-main);
-            padding-bottom: 10px;
-        }
-
-        .nav-links button {
-            background: none;
-            border: none;
-            color: var(--text-dim);
-            font-family: var(--font);
-            font-size: 1rem;
-            text-align: left;
-            padding: 15px 0;
-            cursor: pointer;
-            width: 100%;
-            border-bottom: 1px solid #222;
-            transition: 0.2s;
-            text-transform: uppercase;
-        }
-
-        .nav-links button:hover { color: var(--text-main); padding-left: 10px; }
-        .nav-links button.active { color: var(--accent); font-weight: bold; border-right: 3px solid var(--accent); }
-
-        .user-status {
             font-size: 0.8rem;
-            color: var(--text-dim);
-            border-top: 1px solid var(--border);
-            padding-top: 20px;
         }
 
-        /* MAIN CONTENT AREA */
-        main {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
+        .progress-container {
+            flex-grow: 1;
+            margin: 0 20px;
+            background: #333;
+            height: 12px;
             position: relative;
         }
 
-        .page { display: none; animation: fadeIn 0.3s; }
-        .page.active { display: block; }
+        .progress-fill {
+            width: 38%;
+            height: 100%;
+            background: var(--alert);
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* HERO SECTION */
+        .hero {
+            padding: 80px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
 
-        h1 { border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-top: 0; }
-        h2 { font-size: 1.2rem; color: var(--accent); margin-top: 30px; }
-        p { line-height: 1.6; color: #ccc; max-width: 800px; }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            letter-spacing: -2px;
+            text-transform: uppercase;
+        }
 
-        /* COMPONENT: CARDS & GRIDS */
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
-        
+        .tagline {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+        }
+
+        /* CONTENT GRID */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
         .card {
+            background: var(--panel);
             border: 1px solid var(--border);
-            background: #111;
-            padding: 20px;
+            padding: 30px;
         }
 
-        /* PAGE 1: MANIFESTO SPECIFIC */
-        .kill-switch-container {
-            border: 1px solid var(--alert);
-            padding: 20px;
-            margin-bottom: 30px;
-            background: rgba(255, 68, 0, 0.05);
+        .card h3 {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-top: 0;
+            color: #888;
         }
-        .progress-bar { height: 20px; background: #222; width: 100%; margin: 10px 0; position: relative; }
-        .progress-fill { height: 100%; background: var(--alert); width: 42%; }
-        .stat-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-top: 5px; }
 
-        /* PAGE 2: STUDIO SPECIFIC */
-        .studio-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
-        .option-row { display: flex; justify-content: space-between; padding: 10px; border: 1px solid #222; margin-bottom: 10px; cursor: pointer; }
-        .option-row:hover { border-color: var(--text-dim); }
-        .option-row.selected { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
-        
-        .bom-sidebar { position: sticky; top: 0; border: 1px solid var(--border); padding: 20px; height: fit-content; }
-        .bom-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; }
-        .total { border-top: 1px solid var(--text-dim); padding-top: 10px; font-size: 1.2rem; color: var(--accent); font-weight: bold; }
-        
-        /* PAGE 3: GOVERNANCE */
-        .vote-card { border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; }
-        .vote-bar { height: 10px; background: #333; margin: 10px 0; display: flex; }
-        .vote-a { background: var(--text-main); height: 100%; }
-        .vote-b { background: var(--text-dim); height: 100%; }
-        .locked { opacity: 0.5; pointer-events: none; }
+        /* CTA BUTTON */
+        .btn-cta {
+            display: inline-block;
+            background: var(--text);
+            color: var(--bg);
+            padding: 20px 40px;
+            font-family: var(--font);
+            font-weight: bold;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+            border: 2px solid var(--text);
+            transition: 0.2s;
+            margin-top: 40px;
+        }
 
-        /* PAGE 4: PRODUCTION */
-        .timeline-item { padding-left: 20px; border-left: 2px solid var(--border); padding-bottom: 30px; position: relative; }
-        .timeline-item::before { content: ''; position: absolute; left: -6px; top: 0; width: 10px; height: 10px; background: var(--bg); border: 2px solid var(--text-dim); border-radius: 50%; }
-        .timeline-item.done { border-color: var(--accent); }
-        .timeline-item.done::before { background: var(--accent); border-color: var(--accent); }
-        
-        /* BUTTONS */
-        .btn-main { background: var(--accent); color: #000; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; font-family: var(--font); text-transform: uppercase; }
-        .btn-main:hover { background: #fff; }
-        .btn-disabled { background: #333; color: #555; cursor: not-allowed; }
-
+        .btn-cta:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #000;
+        }
     </style>
 </head>
 <body>
 
-    <nav>
-        <div>
-            <div class="brand">OPENBUILD<br><span style="font-size:0.6em; color:var(--accent)">FOUNDATION SERIES</span></div>
-            <div class="nav-links">
-                <button onclick="nav('manifesto')" id="nav-manifesto" class="active">01 // Manifesto</button>
-                <button onclick="nav('studio')" id="nav-studio">02 // The Studio</button>
-                <button onclick="nav('governance')" id="nav-governance">03 // Governance</button>
-                <button onclick="nav('production')" id="nav-production">04 // Production</button>
-            </div>
+    <div class="kill-switch">
+        <span style="color: var(--alert); font-weight:bold;">⚠️ KILL SWITCH ACTIVE</span>
+        <div class="progress-container">
+            <div class="progress-fill"></div>
         </div>
-        <div class="user-status">
-            STATUS: OBSERVER<br>
-            CREDITS: 0<br>
-            <span style="color:var(--alert); font-size: 0.7em;">NOT A BUILDER</span>
+        <span>38% FUNDED // 42 DAYS LEFT</span>
+    </div>
+
+    <div class="hero">
+        <h1>OPENBUILD</h1>
+        <div class="tagline">Hardware without the black box.<br>Built by community. Vetoed by physics.</div>
+        
+        <a href="login.html" class="btn-cta">Enter The Lab &rarr;</a>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h3>01 // THE PROBLEM</h3>
+            <p>Tech companies treat you like a child. They hide trade-offs behind marketing fluff. You pay for features you didn't ask for.</p>
         </div>
-    </nav>
-
-    <main>
-
-        <div id="manifesto" class="page active">
-            <div class="kill-switch-container">
-                <h3 style="margin:0; color:var(--alert)">THE TRANSPARENCY PACT</h3>
-                <p style="font-size:0.9rem; margin-bottom:10px;">If we don't hit 25,000 Builders, this project dies. No zombie products.</p>
-                <div class="progress-bar"><div class="progress-fill"></div></div>
-                <div class="stat-row">
-                    <span>10,500 Builders Pledged</span>
-                    <span>GOAL: 25,000</span>
-                </div>
-            </div>
-
-            <h1>HARDWARE WITHOUT THE BLACK BOX.</h1>
-            <p style="font-size: 1.2rem;">Stop buying what they sell you. Start building what you want.</p>
-            
-            <div class="grid-3" style="margin-top: 40px;">
-                <div class="card">
-                    <h3>1. DESIGN</h3>
-                    <p>Enter the Studio. Choose your trade-offs. Balance the budget.</p>
-                </div>
-                <div class="card">
-                    <h3>2. VOTE</h3>
-                    <p>Majority rules. If 60% want better battery over lighter weight, we build it.</p>
-                </div>
-                <div class="card">
-                    <h3>3. SHIP</h3>
-                    <p>We manufacture exactly what was voted for. Full BOM transparency.</p>
-                </div>
-            </div>
-
-            <br><br>
-            <button class="btn-main" onclick="nav('studio')">ENTER THE STUDIO &rarr;</button>
+        <div class="card">
+            <h3>02 // THE SOLUTION</h3>
+            <p>Radical transparency. We show you the Bill of Materials (BOM). You see exactly where every cent goes. No hidden margins.</p>
         </div>
-
-
-        <div id="studio" class="page">
-            <h1>THE STUDIO [ALPHA]</h1>
-            <div class="studio-layout">
-                
-                <div>
-                    <h2>1. Driver Configuration</h2>
-                    <div class="option-row selected" onclick="selectOpt(this, 'driver', 1200)">
-                        <span>Single 2.5" High-Excursion</span> <span>₹1,200</span>
-                    </div>
-                    <div class="option-row" onclick="selectOpt(this, 'driver', 1900)">
-                        <span>Dual 2.0" Stereo Array</span> <span>₹1,900</span>
-                    </div>
-
-                    <h2>2. Enclosure Material</h2>
-                    <div class="option-row selected" onclick="selectOpt(this, 'mat', 600)">
-                        <span>Polycarbonate (Plastic)</span> <span>₹600</span>
-                    </div>
-                    <div class="option-row" onclick="selectOpt(this, 'mat', 2400)">
-                        <span>Anodized Aluminum</span> <span>₹2,400</span>
-                    </div>
-                    <p style="font-size: 0.8rem; color: #888;">> Engineer Note: Aluminum blocks RF signals by 15%.</p>
-
-                    <h2>3. Battery Size</h2>
-                    <div class="option-row selected" onclick="selectOpt(this, 'bat', 500)">
-                        <span>3000mAh (Standard)</span> <span>₹500</span>
-                    </div>
-                    <div class="option-row" onclick="selectOpt(this, 'bat', 1100)">
-                        <span>5000mAh (Heavy)</span> <span>₹1,100</span>
-                    </div>
-                </div>
-
-                <div class="bom-sidebar">
-                    <h3 style="margin-top:0">LIVE BILL OF MATERIALS</h3>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <span style="font-size:0.8rem">BUDGET CAP: ₹7,500</span>
-                        <div style="height:5px; background:#333; margin-top:5px;">
-                            <div id="budget-bar" style="height:100%; background:var(--accent); width:0%"></div>
-                        </div>
-                    </div>
-
-                    <div class="bom-item"><span>Components:</span> <span id="cost-comp">₹2300</span></div>
-                    <div class="bom-item"><span>Assembly:</span> <span>₹1500</span></div>
-                    <div class="bom-item"><span>Logistics:</span> <span>₹1200</span></div>
-                    <div class="bom-item"><span>Fixed Margin:</span> <span>₹750</span></div>
-                    
-                    <div class="total bom-item">
-                        <span>TOTAL:</span> <span id="cost-total">₹5750</span>
-                    </div>
-
-                    <div id="alert-box" style="display:none; color:var(--alert); font-size:0.8rem; border:1px solid var(--alert); padding:10px; margin:10px 0;">
-                        ⚠️ OVER BUDGET. CONFIGURATION INVALID.
-                    </div>
-
-                    <button id="commit-btn" class="btn-main" style="width:100%; margin-top:20px;" onclick="alert('In a real app, this takes you to payment gateway.')">COMMIT (₹50)</button>
-                </div>
-            </div>
+        <div class="card">
+            <h3>03 // THE MECHANIC</h3>
+            <p>1. <strong>Join</strong> as a Builder.<br>2. <strong>Vote</strong> on components.<br>3. <strong>Ship</strong> only if the community agrees.</p>
         </div>
+    </div>
 
+    <footer style="text-align: center; padding: 40px; color: #555; font-size: 0.8rem;">
+        OPENBUILD OS v1.0 [PROTOTYPE]
+    </footer>
 
-        <div id="governance" class="page">
-            <h1>ACTIVE VOTES</h1>
-            <p>Only Builders can vote. Weight is determined by your tier.</p>
-
-            <div class="vote-card">
-                <div style="display:flex; justify-content:space-between">
-                    <h3>VOTE #042: BASS vs PORTABILITY</h3>
-                    <span style="color:var(--accent)">LIVE - Ends in 24h</span>
-                </div>
-                <p>The community is split. Do we increase the cabinet size by 20% for deeper bass, or keep it compact?</p>
-                
-                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:10px;">
-                    <span>OPTION A: BIGGER (58%)</span>
-                    <span>OPTION B: COMPACT (42%)</span>
-                </div>
-                <div class="vote-bar">
-                    <div class="vote-a" style="width:58%"></div>
-                    <div class="vote-b" style="width:42%"></div>
-                </div>
-                <button class="btn-disabled" style="border:none; padding:10px; width:100%">LOGIN AS BUILDER TO VOTE</button>
-            </div>
-
-            <div class="vote-card locked">
-                <h3>VOTE #043: COLOR FINISH</h3>
-                <p>Locked. Available to Founding Circle tier only.</p>
-            </div>
-        </div>
-
-
-        <div id="production" class="page">
-            <h1>PRODUCTION TIMELINE</h1>
-            <p>Real-time updates from the factory floor.</p>
-
-            <div style="margin-top:40px;">
-                <div class="timeline-item done">
-                    <strong>PHASE 1: CONCEPT VALIDATION</strong>
-                    <br><span style="font-size:0.8rem; color:#888;">Completed Oct 12</span>
-                </div>
-                <div class="timeline-item done">
-                    <strong>PHASE 2: COMMUNITY SPECS</strong>
-                    <br><span style="font-size:0.8rem; color:#888;">Locked Nov 01</span>
-                </div>
-                <div class="timeline-item" style="border-left-color: var(--accent);">
-                    <strong style="color:var(--accent)">PHASE 3: PROTOTYPING (CURRENT)</strong>
-                    <p style="font-size:0.9rem;">Engineers are currently testing the thermal limits of the Aluminum chassis with the 5000mAh battery.</p>
-                </div>
-                <div class="timeline-item" style="border-left-color: #333;">
-                    <strong>PHASE 4: TOOLING</strong>
-                    <br><span style="font-size:0.8rem; color:#888;">Est. Start: Dec 15</span>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <script>
-        // NAVIGATION LOGIC
-        function nav(pageId) {
-            // Hide all pages
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
-            
-            // Show target
-            document.getElementById(pageId).classList.add('active');
-            document.getElementById('nav-'+pageId).classList.add('active');
-        }
-
-        // STUDIO LOGIC
-        let currentCost = { driver: 1200, mat: 600, bat: 500 };
-        const fixedCost = 1500 + 1200 + 750;
-        const budgetCap = 7500;
-
-        function selectOpt(el, type, price) {
-            // UI Toggle
-            let siblings = el.parentElement.querySelectorAll('.option-row');
-            siblings.forEach(s => s.classList.remove('selected'));
-            el.classList.add('selected');
-
-            // Update Math
-            currentCost[type] = price;
-            updateBOM();
-        }
-
-        function updateBOM() {
-            let compTotal = currentCost.driver + currentCost.mat + currentCost.bat;
-            let finalTotal = compTotal + fixedCost;
-            
-            document.getElementById('cost-comp').innerText = "₹" + compTotal;
-            document.getElementById('cost-total').innerText = "₹" + finalTotal;
-
-            // Budget Bar Logic
-            let pct = (finalTotal / budgetCap) * 100;
-            let bar = document.getElementById('budget-bar');
-            let alertBox = document.getElementById('alert-box');
-            let btn = document.getElementById('commit-btn');
-
-            bar.style.width = Math.min(pct, 100) + "%";
-
-            if (finalTotal > budgetCap) {
-                bar.style.background = "var(--alert)";
-                alertBox.style.display = "block";
-                btn.classList.add('btn-disabled');
-                btn.innerText = "OVER BUDGET";
-            } else {
-                bar.style.background = "var(--accent)";
-                alertBox.style.display = "none";
-                btn.classList.remove('btn-disabled');
-                btn.innerText = "COMMIT (₹50)";
-            }
-        }
-    </script>
 </body>
 </html>
