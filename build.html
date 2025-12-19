@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPENBUILD | Workbench</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --panel: #141414;
+            --border: #333;
+            --text: #e0e0e0;
+            --accent: #00ff41;
+            --alert: #ff4400;
+            --font: 'Courier New', monospace;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER */
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #000;
+        }
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+        }
+        .avatar {
+            width: 30px; height: 30px; background: var(--accent); color: #000;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold;
+        }
+
+        /* MAIN LAYOUT */
+        .workspace {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        /* LEFT: COMPONENTS */
+        .component-panel {
+            padding: 40px;
+            overflow-y: auto;
+            border-right: 1px solid var(--border);
+        }
+
+        .comp-group { margin-bottom: 40px; }
+        .comp-header {
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            color: #888;
+        }
+        
+        .radio-label {
+            display: flex; justify-content: space-between;
+            padding: 15px; border: 1px solid var(--border);
+            margin-bottom: 10px; cursor: pointer;
+            background: var(--panel);
+        }
+        .radio-label:hover { border-color: #666; }
+        input[type="radio"] { margin-right: 15px; }
+
+        .eng-note {
+            font-size: 0.75rem; color: #666; margin-left: 30px; font-style: italic; display: block;
+        }
+
+        /* RIGHT: BOM & LOGIC */
+        .logic-panel {
+            padding: 40px;
+            background: #0f0f0f;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* BUDGET BAR */
+        .budget-container { margin-bottom: 30px; }
+        .bar-track { height: 20px; background: #222; border: 1px solid #444; position: relative; }
+        .bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+        .bar-text { position: absolute; right: 0; top: -25px; font-weight: bold; }
+
+        /* BOM LIST */
+        .bom-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; border-bottom: 1px dashed #333; padding-bottom: 5px; }
+        .fixed-cost { color: #666; }
+        
+        .total-row {
+            margin-top: auto;
+            border-top: 2px solid var(--text);
+            padding-top: 20px;
+            font-size: 1.2rem;
+            display: flex; justify-content: space-between;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        /* STATUS & BUTTON */
+        .status-box {
+            margin-top: 20px;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        .btn-commit {
+            width: 100%; padding: 20px;
+            margin-top: 20px;
+            background: var(--accent); border: none;
+            font-family: var(--font); font-weight: bold; font-size: 1rem;
+            cursor: pointer; text-transform: uppercase;
+        }
+        .btn-commit:disabled {
+            background: #333; color: #555; cursor: not-allowed;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>OPENBUILD // STUDIO_ALPHA</div>
+        <div class="user-badge">
+            <span id="u-tier" style="color:var(--accent)">TIER</span>
+            <div id="u-avatar" class="avatar">?</div>
+            <span id="u-name">Guest</span>
+            <button onclick="logout()" style="background:none; border:1px solid #333; color:#666; margin-left:15px; cursor:pointer;">LOGOUT</button>
+        </div>
+    </header>
+
+    <div class="workspace">
+        
+        <div class="component-panel">
+            <h2>COMPONENT SELECTION</h2>
+            <p style="color:#666; margin-bottom: 30px;">Select your trade-offs. Watch the budget.</p>
+
+            <div class="comp-group">
+                <div class="comp-header">01 // AUDIO DRIVERS</div>
+                <label class="radio-label">
+                    <div><input type="radio" name="driver" value="1200" checked onchange="calc()"> Single 2.5" High-Excursion</div>
+                    <span>₹1,200</span>
+                </label>
+                
+                <label class="radio-label">
+                    <div><input type="radio" name="driver" value="2100" onchange="calc()"> Dual 2.0" Stereo Array</div>
+                    <span>₹2,100</span>
+                </label>
+                <span class="eng-note">> Engineer Note: Stereo array requires complex crossover PCB.</span>
+            </div>
+
+            <div class="comp-group">
+                <div class="comp-header">02 // ENCLOSURE MATERIAL</div>
+                <label class="radio-label">
+                    <div><input type="radio" name="mat" value="600" checked onchange="calc()"> Injection Molded ABS</div>
+                    <span>₹600</span>
+                </label>
+                
+                <label class="radio-label">
+                    <div><input type="radio" name="mat" value="2400" onchange="calc()"> Anodized Aluminum 6063</div>
+                    <span>₹2,400</span>
+                </label>
+                <span class="eng-note">> Engineer Note: Aluminum adds premium feel but eats 30% of budget.</span>
+            </div>
+
+            <div class="comp-group">
+                <div class="comp-header">03 // POWER CELL</div>
+                <label class="radio-label">
+                    <div><input type="radio" name="bat" value="500" checked onchange="calc()"> 3000mAh (Standard)</div>
+                    <span>₹500</span>
+                </label>
+                
+                <label class="radio-label">
+                    <div><input type="radio" name="bat" value="950" onchange="calc()"> 5000mAh (Endurance)</div>
+                    <span>₹950</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="logic-panel">
+            <h3>LIVE CONSTRAINTS</h3>
+            
+            <div class="budget-container">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span>BUDGET CAP</span>
+                    <span>₹7,500</span>
+                </div>
+                <div class="bar-track">
+                    <div id="bar-fill" class="bar-fill"></div>
+                </div>
+                <div id="pct-text" style="text-align:right; margin-top:5px; font-size:0.8rem; color:var(--accent)">0% USED</div>
+            </div>
+
+            <h3>BILL OF MATERIALS (BOM)</h3>
+            <div class="bom-list">
+                <div class="bom-item"><span>Selection Cost</span> <span id="cost-select">₹0</span></div>
+                <div class="bom-item fixed-cost"><span>Assembly & Labor</span> <span>₹1,500</span></div>
+                <div class="bom-item fixed-cost"><span>Logistics & Tax</span> <span>₹1,200</span></div>
+                <div class="bom-item fixed-cost"><span>Company Margin (Fixed)</span> <span>₹750</span></div>
+            </div>
+
+            <div class="total-row">
+                <span>TOTAL COST:</span>
+                <span id="cost-total">₹0</span>
+            </div>
+
+            <div id="status-valid" class="status-box" style="border:1px solid var(--accent); color:var(--accent);">
+                CONFIGURATION VALID
+            </div>
+            <div id="status-invalid" class="status-box" style="border:1px solid var(--alert); color:var(--alert);">
+                ⚠️ BUDGET EXCEEDED
+            </div>
+
+            <button id="btn-commit" class="btn-commit" onclick="alert('VOTE RECORDED.\n\nThank you for participating in the OpenBuild Beta.')">
+                COMMIT CONFIGURATION
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 1. AUTH CHECK
+        const userRaw = localStorage.getItem('openbuild_user');
+        if (!userRaw) {
+            window.location.href = 'login.html';
+        }
+        const user = JSON.parse(userRaw);
+
+        // 2. HEADER SETUP
+        document.getElementById('u-name').innerText = user.name;
+        document.getElementById('u-tier').innerText = user.tier.toUpperCase();
+        document.getElementById('u-avatar').innerText = user.name.charAt(0).toUpperCase();
+
+        function logout() {
+            localStorage.removeItem('openbuild_user');
+            window.location.href = 'index.html';
+        }
+
+        // 3. CALCULATION LOGIC
+        const MAX_BUDGET = 7500;
+        const FIXED_COST = 1500 + 1200 + 750; // = 3450
+
+        function calc() {
+            // Get values
+            const d = parseInt(document.querySelector('input[name="driver"]:checked').value);
+            const m = parseInt(document.querySelector('input[name="mat"]:checked').value);
+            const b = parseInt(document.querySelector('input[name="bat"]:checked').value);
+
+            const selectionCost = d + m + b;
+            const totalCost = selectionCost + FIXED_COST;
+            const pct = (totalCost / MAX_BUDGET) * 100;
+
+            // Update DOM Numbers
+            document.getElementById('cost-select').innerText = "₹" + selectionCost.toLocaleString();
+            document.getElementById('cost-total').innerText = "₹" + totalCost.toLocaleString();
+            document.getElementById('pct-text').innerText = Math.round(pct) + "% USED";
+
+            // Update Bar & State
+            const bar = document.getElementById('bar-fill');
+            const validBox = document.getElementById('status-valid');
+            const invalidBox = document.getElementById('status-invalid');
+            const btn = document.getElementById('btn-commit');
+
+            bar.style.width = Math.min(pct, 100) + "%";
+
+            if (totalCost > MAX_BUDGET) {
+                // OVER BUDGET STATE
+                bar.style.backgroundColor = "var(--alert)";
+                document.getElementById('cost-total').style.color = "var(--alert)";
+                validBox.style.display = "none";
+                invalidBox.style.display = "block";
+                btn.disabled = true;
+                btn.innerText = "CONFIG INVALID";
+            } else {
+                // VALID STATE
+                bar.style.backgroundColor = "var(--accent)";
+                document.getElementById('cost-total').style.color = "var(--accent)";
+                validBox.style.display = "block";
+                invalidBox.style.display = "none";
+                btn.disabled = false;
+                btn.innerText = "COMMIT CONFIGURATION";
+            }
+        }
+
+        // Initialize
+        calc();
+    </script>
+</body>
+</html>
