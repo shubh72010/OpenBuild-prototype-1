@@ -22,6 +22,7 @@
             color: var(--text);
             font-family: var(--font);
             margin: 0;
+            /* Default Desktop: Fixed viewport, internal scrolling */
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -30,12 +31,15 @@
         /* HEADER */
         header {
             border-bottom: 1px solid var(--border);
-            padding: 15px 30px;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: #000;
+            flex-shrink: 0; /* Prevent header from shrinking */
         }
+        .brand { font-weight: bold; letter-spacing: 1px; }
+        
         .user-badge {
             display: flex;
             align-items: center;
@@ -53,43 +57,46 @@
             display: grid;
             grid-template-columns: 2fr 1fr;
             flex-grow: 1;
-            overflow: hidden;
+            overflow: hidden; /* Desktop: Container hides overflow, children scroll */
         }
 
         /* LEFT: COMPONENTS */
         .component-panel {
-            padding: 40px;
-            overflow-y: auto;
+            padding: 30px;
+            overflow-y: auto; /* Scroll internally on desktop */
             border-right: 1px solid var(--border);
         }
 
-        .comp-group { margin-bottom: 40px; }
+        .comp-group { margin-bottom: 30px; }
         .comp-header {
             border-bottom: 1px solid var(--border);
             margin-bottom: 15px;
             padding-bottom: 5px;
             color: #888;
+            font-weight: bold;
         }
         
         .radio-label {
-            display: flex; justify-content: space-between;
+            display: flex; justify-content: space-between; align-items: center;
             padding: 15px; border: 1px solid var(--border);
             margin-bottom: 10px; cursor: pointer;
             background: var(--panel);
+            transition: 0.2s;
         }
         .radio-label:hover { border-color: #666; }
-        input[type="radio"] { margin-right: 15px; }
+        input[type="radio"] { margin-right: 15px; transform: scale(1.2); }
 
         .eng-note {
-            font-size: 0.75rem; color: #666; margin-left: 30px; font-style: italic; display: block;
+            font-size: 0.75rem; color: #666; margin-left: 10px; font-style: italic; display: block; margin-top: 5px;
         }
 
         /* RIGHT: BOM & LOGIC */
         .logic-panel {
-            padding: 40px;
+            padding: 30px;
             background: #0f0f0f;
             display: flex;
             flex-direction: column;
+            overflow-y: auto;
         }
 
         /* BUDGET BAR */
@@ -103,7 +110,7 @@
         .fixed-cost { color: #666; }
         
         .total-row {
-            margin-top: auto;
+            margin-top: auto; /* Push to bottom on desktop */
             border-top: 2px solid var(--text);
             padding-top: 20px;
             font-size: 1.2rem;
@@ -131,26 +138,60 @@
             background: #333; color: #555; cursor: not-allowed;
         }
 
+        /* --- MOBILE FIX --- */
+        @media (max-width: 900px) {
+            body {
+                height: auto; /* Remove fixed height */
+                overflow-y: auto; /* Allow natural scrolling */
+            }
+
+            .workspace {
+                display: flex;
+                flex-direction: column; /* Stack elements */
+                overflow: visible;
+            }
+
+            .component-panel {
+                overflow-y: visible; /* Remove internal scroll */
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                padding: 20px;
+            }
+
+            .logic-panel {
+                padding: 20px;
+                background: #000;
+                overflow-y: visible;
+            }
+
+            header {
+                font-size: 0.8rem; /* Smaller header text */
+            }
+            
+            .brand { display: block; margin-bottom: 5px; }
+            .user-badge { font-size: 0.7rem; }
+            
+            /* Make Total Row sticky on mobile? Optional, but here we just keep it stacked */
+            .total-row { margin-top: 20px; }
+        }
+
     </style>
 </head>
 <body>
 
     <header>
-        <div>OPENBUILD // STUDIO_ALPHA</div>
+        <div class="brand">OPENBUILD<br><span style="color:#666">STUDIO_ALPHA</span></div>
         <div class="user-badge">
             <span id="u-tier" style="color:var(--accent)">TIER</span>
             <div id="u-avatar" class="avatar">?</div>
             <span id="u-name">Guest</span>
-            <button onclick="logout()" style="background:none; border:1px solid #333; color:#666; margin-left:15px; cursor:pointer;">LOGOUT</button>
+            <button onclick="logout()" style="background:none; border:1px solid #333; color:#666; margin-left:10px; cursor:pointer; font-size:0.7rem; padding: 5px;">LOGOUT</button>
         </div>
     </header>
 
     <div class="workspace">
         
         <div class="component-panel">
-            <h2>COMPONENT SELECTION</h2>
-            <p style="color:#666; margin-bottom: 30px;">Select your trade-offs. Watch the budget.</p>
-
             <div class="comp-group">
                 <div class="comp-header">01 // AUDIO DRIVERS</div>
                 <label class="radio-label">
@@ -194,8 +235,6 @@
         </div>
 
         <div class="logic-panel">
-            <h3>LIVE CONSTRAINTS</h3>
-            
             <div class="budget-container">
                 <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                     <span>BUDGET CAP</span>
@@ -207,7 +246,7 @@
                 <div id="pct-text" style="text-align:right; margin-top:5px; font-size:0.8rem; color:var(--accent)">0% USED</div>
             </div>
 
-            <h3>BILL OF MATERIALS (BOM)</h3>
+            <h3 style="margin-top:0; margin-bottom:20px; font-size:1rem; border-bottom:1px solid #333; padding-bottom:10px;">BILL OF MATERIALS (BOM)</h3>
             <div class="bom-list">
                 <div class="bom-item"><span>Selection Cost</span> <span id="cost-select">₹0</span></div>
                 <div class="bom-item fixed-cost"><span>Assembly & Labor</span> <span>₹1,500</span></div>
@@ -242,8 +281,8 @@
         const user = JSON.parse(userRaw);
 
         // 2. HEADER SETUP
-        document.getElementById('u-name').innerText = user.name;
-        document.getElementById('u-tier').innerText = user.tier.toUpperCase();
+        document.getElementById('u-name').innerText = user.name.split(' ')[0]; // Just first name on mobile
+        document.getElementById('u-tier').innerText = user.tier === 'Founding Circle' ? 'FOUNDER' : user.tier.toUpperCase(); // Shorten tier name
         document.getElementById('u-avatar').innerText = user.name.charAt(0).toUpperCase();
 
         function logout() {
